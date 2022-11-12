@@ -1042,10 +1042,10 @@ class PanelMesh(object):
             fid.write(str(self.faces.shape[0]))
             fid.write('\n')
             for i,face in enumerate(self.faces):
-                if np.size(face) is 4: # if the mesh element is a quad
+                if np.size(face) == 4: # if the mesh element is a quad
                     for j,pointKey in enumerate(face):
                         fid.write(str(self.points[pointKey]).replace(',','').replace('[','').replace(']','') + '\n')
-                if np.size(face) is 3: # if the mesh element is a tri
+                if np.size(face) == 3: # if the mesh element is a tri
                     faceMod = np.append(face,face[-1])
                     for j,pointKey in enumerate(faceMod):
                         fid.write(str(self.points[pointKey]).replace(',','').replace('[','').replace(']','') + '\n')
