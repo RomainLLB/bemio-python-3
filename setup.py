@@ -28,14 +28,14 @@ setup(
         'Development Status :: Release',
         'Intended Audience :: Ocean research community',
         'License ::Apache 2.0',
-        'Programming Language :: Python :: 2.7'
+        'Programming Language :: Python :: 3.7'
     ],
 
     keywords='bemio',
 
     packages=find_packages(exclude=['doc', 'tutorials']),
 
-    install_requires=['numpy', 'scipy', 'h5py', 'progressbar2', 'astropy'],
+    install_requires=['numpy', 'scipy', 'h5py', 'astropy', 'tqdm'],
 
     extras_require={
         'dev': [],
