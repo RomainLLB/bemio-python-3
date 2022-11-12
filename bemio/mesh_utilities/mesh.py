@@ -46,7 +46,7 @@ try:
 
 except:
 
-    print 'The VTK Python module is required for a significant amnount of functionality in this module. Many functions will not be available for use.'
+    print('The VTK Python module is required for a significant amnount of functionality in this module. Many functions will not be available for use.')
 
 
 
@@ -160,7 +160,7 @@ class PanelMesh(object):
         '\n\tC[4,4], C[4,5], C[4,6]: '  +  str(self.hydrostatic_stiffness[3,3]) + ', ' + str(self.hydrostatic_stiffness[3,4]) + ', ' + str(self.hydrostatic_stiffness[3,5]) + \
         '\n\tC[5,5], C[5,6]:         '  +  str(self.hydrostatic_stiffness[4,4]) + ', ' + str(self.hydrostatic_stiffness[4,5])
 
-        return out_string
+        return(out_string)
 
     @ property
     def bounds(self, ):
@@ -169,7 +169,7 @@ class PanelMesh(object):
             self._bounds['max'] = self.points.max(axis=0)
             self._bounds['min'] = self.points.min(axis=0)
 
-        return self._bounds
+        return(self._bounds)
 
     @property
     def hydrostatic_stiffness(self, ):
@@ -198,9 +198,9 @@ class PanelMesh(object):
             self._hydrostatic_stiffness[4,4] += self.volume_x * self.center_of_buoyancy[2] - self.volume_x * self.center_of_gravity[2]
             self._hydrostatic_stiffness[4,5] += -self.volume_x * self.center_of_buoyancy[1] + self.volume_x * self.center_of_gravity[1]
 
-            print 'Calculated hydorstatic stiffness'
+            print('Calculated hydorstatic stiffness')
 
-        return self._hydrostatic_stiffness
+        return(self._hydrostatic_stiffness)
 
     @property
     def center_of_buoyancy(self, ):
@@ -224,15 +224,15 @@ class PanelMesh(object):
                     z_b += self.normals[face_n][2]*self.centroid[face_n][2]**2*self.cell_surface_area[face_n]
             self._center_of_buoyancy = 1./(2.*self.volume_x )*np.array([x_b, y_b, z_b])
 
-            print 'Calculated the center of buoyancy'
+            print('Calculated the center of buoyancy')
 
-        return self._center_of_buoyancy
+        return(self._center_of_buoyancy)
 
     @property
     def normals(self, ):
         if self._normals is None:
             self._normals = {}
-            for face_n in xrange(self.faces.shape[0]):
+            for face_n in range(self.faces.shape[0]):
                 a = self.points[self.faces[face_n][1]] - self.points[self.faces[face_n][0]]
                 b = self.points[self.faces[face_n][2]] - self.points[self.faces[face_n][1]]
                 self._normals[face_n] = np.cross(a,b)
@@ -249,9 +249,9 @@ class PanelMesh(object):
 
                 self._normals[face_n] /= np.linalg.norm(self._normals[face_n])
 
-            print 'Calculated mesh cell normals'
+            print('Calculated mesh cell normals')
 
-        return self._normals
+        return(self._normals)
 
     @property
     def cell_surface_area(self):
@@ -261,16 +261,16 @@ class PanelMesh(object):
         '''
         if self._cell_surface_area is None:
             self._cell_surface_area = {}
-            for face_n in xrange(self.faces.shape[0]):
+            for face_n in range(self.faces.shape[0]):
                 a = self.points[self.faces[face_n][1]] - self.points[self.faces[face_n][0]]
                 b = self.points[self.faces[face_n][2]] - self.points[self.faces[face_n][1]]
                 c = self.points[self.faces[face_n][3]] - self.points[self.faces[face_n][2]]
                 d = self.points[self.faces[face_n][0]] - self.points[self.faces[face_n][3]]
                 self._cell_surface_area[face_n] = 1./2. * ( np.linalg.norm(np.cross(a,b)) + np.linalg.norm(np.cross(c,d)) )
 
-            print 'Calculated surface cell area'
+            print('Calculated surface cell area')
 
-        return self._cell_surface_area
+        return(self._cell_surface_area)
 
     @property
     def surface_area(self):
@@ -278,9 +278,9 @@ class PanelMesh(object):
 
             self._surface_area = sum(self.cell_surface_area.values())
 
-            print 'Calculated surface area'
+            print('Calculated surface area')
 
-        return self._surface_area
+        return(self._surface_area)
 
     @property
     def volume_vtk(self):
@@ -296,9 +296,9 @@ class PanelMesh(object):
             mass_props.SetInputDataObject(tri_mesh)
             self._volume_vtk = mass_props.GetVolume()
 
-            print 'Calculated mesh volume using VTK library'
+            print('Calculated mesh volume using VTK library')
 
-        return self._volume_vtk
+        return(self._volume_vtk)
 
     @property
     def centroid(self):
@@ -315,25 +315,25 @@ class PanelMesh(object):
                 points = map(np.asarray, set(map(tuple, points))) # This removes duplicate points... somehow
                 self._centroid[face_n] = np.mean(points,axis=0)
 
-        return self._centroid
+        return(self._centroid)
 
     @property
     def volume_x(self):
         if self._volume_x is None:
             self._calc_component_vol()
-        return self._volume_x
+        return(self._volume_x)
 
     @property
     def volume_y(self):
         if self._volume_y is None:
             self._calc_component_vol()
-        return self._volume_y
+        return(self._volume_y)
 
     @property
     def volume_z(self):
         if self._volume_z is None:
             self._calc_component_vol()
-        return self._volume_z
+        return(self._volume_z)
 
     @property
     def surface_area_vtk(self):
@@ -348,9 +348,9 @@ class PanelMesh(object):
             mass_props.SetInputDataObject(tri_mesh)
             self._surface_area_vtk = mass_props.GetSurfaceArea()
 
-            print 'Calculated mesh surface area using VTK Python bindings'
+            print('Calculated mesh surface area using VTK Python bindings')
 
-        return self._surface_area_vtk
+        return(self._surface_area_vtk)
 
     def write(self,mesh_format='VTP'):
         '''Function to write NEMOH, WAMIT, or VTK PolyData formats.
@@ -423,7 +423,7 @@ class PanelMesh(object):
         com.Update()
         self.center_of_gravity = com.GetCenter()
 
-        print 'Calculated center of gravity assuming uniform material density'
+        print('Calculated center of gravity assuming uniform material density')
 
     def view(self, color=[0.5,1,0.5], opacity=1.0, save_png=False, camera_pos=[50,50,50], interact=True):
         '''Function to view the mesh using the VTK library
@@ -505,7 +505,7 @@ class PanelMesh(object):
             writer.SetInputDataObject(w2if.GetOutput())
             writer.Write()
 
-            print 'Wrote mesh image to: ' + self.files['png']
+            print('Wrote mesh image to: ' + self.files['png'])
 
         if interact is True:
             iren.Start()
@@ -779,7 +779,7 @@ class PanelMesh(object):
             writer.SetFileName(self.files['png'])
             writer.SetInputDataObject(w2if.GetOutput())
             writer.Write()
-            print 'Wrote mesh image to: ' + self.files['png']
+            print('Wrote mesh image to: ' + self.files['png'])
         # Set interaction mode
         if interact is True:
             iren.Start()
@@ -793,11 +793,11 @@ class PanelMesh(object):
         #tempFaces = []
         #count = 0
         #
-        #for i in xrange(self.faces.shape[0]):
+        #for i in range(self.faces.shape[0]):
         #
         #   delete_face = 0
         #
-        #   for j in xrange(4):
+        #   for j in range(4):
         #
         #       p = self.faces[i][j]
         #       z = float(self.cords[int(p)][2])
@@ -835,7 +835,7 @@ class PanelMesh(object):
         self.points = self.points*scale_vect
         self.scale_vect = scale_vect
         self._create_vtp_mesh()
-        print 'Scaled mesh by: ' + str(scale_vect)
+        print('Scaled mesh by: ' + str(scale_vect))
 
     def translate(self,translation_vect,translate_cog=True):
         '''Function used to translate mesh obvjects in the x, y, and z directions.
@@ -863,7 +863,38 @@ class PanelMesh(object):
         if translate_cog is True:
             self.center_of_gravity += translation_vect
 
-        print 'Translated mesh by: ' + str(translation_vect) + '\nCenter of gravity is: ' + str(self.center_of_gravity)
+        print('Translated mesh by: ' + str(translation_vect) + '\nCenter of gravity is: ' + str(self.center_of_gravity))
+        
+    def rotate_origin(self,tx,ty,tz):
+        '''Function used to rotate mesh objects .
+        '''
+        R=np.eye(3)
+        K=np.zeros([3,3])
+        K2=np.zeros([3,3])
+        
+        theta = (tx**2+ty**2+tz**2)**0.5
+        
+        if theta != 0.0:
+            
+            K[0,0] = 0.0; K[0,1] = -tz; K[0,2] = +ty
+            K[1,0] = +tz; K[1,1] = 0.0; K[1,2] = -tx
+            K[2,0] = -ty; K[2,1] = +tx; K[2,2] = 0.0
+         
+            K2[0,0] = -(ty**2+tz**2); K2[0,1] = tx*ty         ; K2[0,2] = tx*tz
+            K2[1,0] = tx*ty         ; K2[1,1] = -(tx**2+tz**2); K2[1,2] = ty*tz
+            K2[2,0] = tx*tz         ; K2[2,1] = ty*tz         ; K2[2,2] = -(tx**2+ty**2)
+            
+            R += np.sin(theta)/theta*K + (1-np.cos(theta))/theta**2*K2
+        
+        points = self.points.copy()
+        rotated_points=np.zeros([points.shape[0],points.shape[1]])
+        
+        for i in range(points.shape[0]):
+            rotated_points[i,:]=np.dot(R,points[i,:])
+        
+        self.points = rotated_points[:,:]
+
+        print('Rotated mesh by: ' + str(180/np.pi*tx) + '° around Ox, ' + str(180/np.pi*ty) + '° around Oy, ' + str(180/np.pi*tz) + '° around Oz ' )
 
     def xzmirror(self,):
         '''Function used to mirror the mesh object about the xz plane.
@@ -952,9 +983,9 @@ class PanelMesh(object):
         raise NotImplementedError()
         #'''Collapse points
         #'''
-        #for face,face_n in xrange(self.faces.shape[0]):
+        #for face,face_n in range(self.faces.shape[0]):
         #
-        #    for j in xrange(self.faces[i].size):
+        #    for j in range(self.faces[i].size):
         #
         #        p = int(self.faces[i][j])
         #
@@ -978,7 +1009,7 @@ class PanelMesh(object):
         writer.SetDataModeToAscii()
         writer.Write()
 
-        print 'Wrote VTK PolyData mesh to: ' + str(self.files['vtp'])
+        print('Wrote VTK PolyData mesh to: ' + str(self.files['vtp']))
 
     def _write_nemoh(self):
         '''Internal function to write NEMOH mesh files
@@ -986,17 +1017,17 @@ class PanelMesh(object):
         with open(self.files['nemoh'],'w') as fid:
             fid.write('2 0') # This should not be hard coded
             fid.write('\n')
-            for i in xrange(self.points.shape[0]):
+            for i in range(self.points.shape[0]):
                 fid.write(str(i+1) + ' ' +str(self.points[i]).replace('[','').replace(']',''))
                 fid.write('\n')
             fid.write('0 0 0 0')
             fid.write('\n')
-            for i in xrange(self.faces.shape[0]):
+            for i in range(self.faces.shape[0]):
                 fid.write(str(self.faces[i]+1).replace('[','').replace(']','').replace('.',''))
                 fid.write('\n')
             fid.write('0 0 0 0')
 
-        print 'Wrote NEMOH mesh to: ' + str(self.files['nemoh'])
+        print('Wrote NEMOH mesh to: ' + str(self.files['nemoh']))
 
     def _write_gdf(self):
         '''Internal function to write WAMIT mesh files
@@ -1019,7 +1050,7 @@ class PanelMesh(object):
                     for j,pointKey in enumerate(faceMod):
                         fid.write(str(self.points[pointKey]).replace(',','').replace('[','').replace(']','') + '\n')
 
-        print 'Wrote WAMIT mesh to: ' + str(self.files['wamit'])
+        print('Wrote WAMIT mesh to: ' + str(self.files['wamit']))
 
     def _calc_component_vol(self, ):
         '''Internal function to calculate mesh volume using the methods
@@ -1030,14 +1061,14 @@ class PanelMesh(object):
         self._volume_z = 0.
         volume = 0.
 
-        for face_n in xrange(self.faces.shape[0]):
+        for face_n in range(self.faces.shape[0]):
             volume += self.normals[face_n]*self.centroid[face_n]*self.cell_surface_area[face_n]
 
         self._volume_x = volume[0]
         self._volume_y = volume[1]
         self._volume_z = volume[2]
 
-        print 'Calculated x y and z mesh volumes'
+        print('Calculated x y and z mesh volumes')
 
 def _read_gdf(file_name):
     '''Internal function to read gdf wamit meshes
@@ -1067,7 +1098,7 @@ def _read_gdf(file_name):
 
     mesh_data.faces = np.array(mesh_data.faces)
 
-    return mesh_data
+    return(mesh_data)
 
 def _read_stl(file_name):
     '''Internal function to read stl mesh files
@@ -1087,7 +1118,7 @@ def _read_stl(file_name):
         mesh_data.points.append(np.array(vtk_to_numpy(reader.GetOutput().GetCell(i).GetPoints().GetData())))
     mesh_data.points = np.array(mesh_data.points).reshape([mesh_data.num_faces*3,3])
 
-    return mesh_data
+    return(mesh_data)
 
 def _read_vtp(file_name):
     '''Internal function to read vtp mesh files
@@ -1103,21 +1134,21 @@ def _read_vtp(file_name):
     mesh_data.num_faces =    int(readerOut.GetNumberOfCells())
     mesh_data.num_points =   int(readerOut.GetNumberOfPoints())
 
-    for i in xrange(mesh_data.num_points):
+    for i in range(mesh_data.num_points):
         mesh_data.points.append(readerOut.GetPoint(i))
     mesh_data.points = np.array(mesh_data.points)
 
-    for i in xrange(mesh_data.num_faces):
+    for i in range(mesh_data.num_faces):
         c = readerOut.GetCell(i)
         numCellPoints = int(c.GetNumberOfPoints())
         idsTemp = []
-        for i in xrange(numCellPoints):
+        for i in range(numCellPoints):
             idsTemp.append(int(c.GetPointId(i)))
         mesh_data.faces.append(np.array(idsTemp))
     mesh_data.faces = np.array(mesh_data.faces)
 
 
-    return mesh_data
+    return(mesh_data)
 
 def _read_nemoh(file_name):
     '''Internal function to read nemoh mesh
@@ -1134,21 +1165,21 @@ def _read_nemoh(file_name):
     mesh_data.orig_type = 'NEMOH (.dat)'
     mesh_data.sym = sym
 
-    while temp[count,0] != 0.:
+    while temp[count][0] != 0.:
 
-        mesh_data.points.append(temp[count,1:])
+        mesh_data.points.append(temp[count][1:])
         count += 1
     count += 1
-    while sum(temp[count,:]) != 0.:
+    while sum(temp[count][:]) != 0.:
 
-        mesh_data.faces.append(temp[count,:]-1)
+        mesh_data.faces.append(temp[count][:]-1)
         count += 1
     mesh_data.points = np.array(mesh_data.points)
     mesh_data.faces = np.array(mesh_data.faces)
     mesh_data.num_points = np.shape(mesh_data.points)[0]
     mesh_data.num_faces = np.shape(mesh_data.faces)[0]
 
-    return mesh_data
+    return(mesh_data)
 
 def read(file_name):
     '''Function to read surface mesh files. Currently VTK PolyData (.vtk),
@@ -1184,7 +1215,7 @@ def read(file_name):
 
         >>> mesh.open()
     '''
-    print 'Reading mesh file: ' + str(file_name)
+    print('Reading mesh file: ' + str(file_name))
 
     file_name = os.path.abspath(file_name)
     (f_name,f_ext) = os.path.splitext(file_name)
@@ -1215,9 +1246,9 @@ def read(file_name):
 
         mesh_data._create_vtp_mesh()
 
-    print 'Successfully read mesh file: ' + str(file_name)
+    print('Successfully read mesh file: ' + str(file_name))
 
-    return mesh_data
+    return(mesh_data)
 
 def _mk_vtk_id_list(it):
     '''
@@ -1234,7 +1265,7 @@ def _mk_vtk_id_list(it):
     for i in it:
         vil.InsertNextId(int(i))
 
-    return vil
+    return(vil)
 
 def collapse_to_plane(mesh_obj, plane_ind=2, plane_loc=-1e-5, cut_dir=1.): #NOT IMPLEMENTED
     '''Function to collapse points to a given plane
@@ -1295,6 +1326,6 @@ def cut_mesh(mesh_obj, plane_ind=2, plane_loc=-1e-5, cut_dir=1.):
 
     cut_mesh.files_base = os.path.splitext(cut_mesh.file_name)[0] + '_cut_mesh_bemio_output'
 
-    print 'Cut mesh in direction [' + str(plane_ind) + '] in direction [' + str(cut_dir) + '] at the location [' + str(plane_loc) + ']'
+    print('Cut mesh in direction [' + str(plane_ind) + '] in direction [' + str(cut_dir) + '] at the location [' + str(plane_loc) + ']')
 
-    return cut_mesh
+    return(cut_mesh)
