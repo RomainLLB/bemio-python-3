@@ -60,7 +60,7 @@ class NemohOutput(object):
         self.scaled = True
         self.dir = os.path.abspath(sim_dir)
 
-        print '\nReading NEMOH output in the ' + self.dir + ' directory'
+        print('\nReading NEMOH output in the ' + self.dir + ' directory')
 
         self.files = bem.generate_file_names(os.path.join(self.dir,cal_file))
         self.files['Nemoh']     = os.path.join(self.dir,cal_file)
@@ -75,7 +75,7 @@ class NemohOutput(object):
         try:
             self.files['IRF'] = os.path.join(self.dir,results_dir,'IRF.tec')
         except:
-            print '\tNo IRF forces or infinite frequency added mass forces read because the ' + self.files['IRF'] + ' was not found'
+            print('\tNo IRF forces or infinite frequency added mass forces read because the ' + self.files['IRF'] + ' was not found')
 
         # Initialize data ovject
         self.body = {}
@@ -93,16 +93,19 @@ class NemohOutput(object):
         self.dfr_mag, self.dfr_phase, temp, raw_diff = _read_tec(self.files['DiffractionForce'], data_type=1)
         self.fk_mag, self.fk_phase, temp, raw_fk = _read_tec(self.files['FKForce'], data_type=1)
         self.ex_phase = -1*self.ex_phase
-        try:
-            self.am_inf, temp1, temp2, raw_am_inf = _read_tec(self.files['IRF'], data_type=2)
-        except:
-            raise Exception('The file ' + self.files['IRF'] + ' was not found. Please make sure the IRF output option is set to 1 in the Nemoh.cal file')
-
+        
         self.ex_im = self.ex_mag*np.sin(self.ex_phase)
         self.ex_re = self.ex_mag*np.cos(self.ex_phase)
 
         f_break = ['#'*100]*5
         self.raw_output = f_break + raw_rad + f_break + raw_diff + f_break + self.ex_mag_raw + f_break + raw_fk + f_break
+
+        
+        
+        try:
+            self.am_inf, temp1, temp2, raw_am_inf = _read_tec(self.files['IRF'], data_type=2)
+        except:
+            raise Exception('The file ' + self.files['IRF'] + ' was not found. Please make sure the IRF output option is set to 1 in the Nemoh.cal file')
 
         self._create_and_load_hydro_data_obj()
 
@@ -110,7 +113,7 @@ class NemohOutput(object):
         '''
         Function to load hydrodynamic data into HydrodynamicData object
         '''
-        for i in xrange(self.cal.n_bods):
+        for i in range(self.cal.n_bods):
             self.body[i] = bem.HydrodynamicData()
             self.body[i].am.all = self.am[0+6*i:6+6*i,:]
             self.body[i].rd.all = self.rd[0+6*i:6+6*i,:]
@@ -168,7 +171,7 @@ class NemohOutput(object):
 
         # Read wave directions
         temp = cal[-6]
-        self.cal.wave_dir_n = np.float(temp.split()[0])
+        self.cal.wave_dir_n = np.int(temp.split()[0])
         self.cal.wave_dir_start = np.float(temp.split()[1])
         self.cal.wave_dir_end = np.float(temp.split()[2])
         self.cal.wave_dir = np.linspace(self.cal.wave_dir_start,self.cal.wave_dir_end,self.cal.wave_dir_n)
@@ -189,7 +192,7 @@ class NemohOutput(object):
         self.cal.add_lines = {}
         self.cal.cg = {}
         line_count = 0
-        for i in xrange(self.cal.n_bods):
+        for i in range(self.cal.n_bods):
             name_with_path = cal[8+line_count].split()[0]
             self.cal.name[i] = os.path.splitext(os.path.basename(name_with_path))[0]
             self.cal.points_panels[i] = cal[9+line_count].split()[0:2]
@@ -197,7 +200,7 @@ class NemohOutput(object):
             self.cal.dof[i] = []
             self.cal.forces[i] = []
             self.cal.add_lines[i] = []
-            for j in xrange(self.cal.n_dof[i]):
+            for j in range(self.cal.n_dof[i]):
                 self.cal.dof[i].append(cal[11+line_count+j])
 
                 if int(self.cal.dof[i][-1].split()[0]) == 2:
@@ -205,12 +208,12 @@ class NemohOutput(object):
 
             self.cal.n_forces[i] = int(cal[10+line_count+self.cal.n_dof[i]+1].split()[0])
 
-            for j in xrange(self.cal.n_forces[i]):
+            for j in range(self.cal.n_forces[i]):
                     self.cal.forces[i].append(cal[11+line_count+j+self.cal.n_dof[i]+1])
 
             self.cal.n_add_lines[i] = int(cal[10 + line_count + self.cal.n_dof[i] + self.cal.n_forces[i] + 2].split()[0])
 
-            for j in xrange(self.cal.n_add_lines[i]):
+            for j in range(self.cal.n_add_lines[i]):
                     self.cal.add_lines[i].append(cal[11+line_count+j+self.cal.n_dof[i]+self.cal.n_forces[i]+1])
 
             line_count += self.cal.n_dof[i] + self.cal.n_forces[i] + self.cal.n_add_lines[i] + 6
@@ -247,7 +250,7 @@ class NemohOutput(object):
 
         if self.body[body_num].scaled is False:
             self.body[body_num].k /= (self.body[body_num].rho * self.body[body_num].g)
-            print '\tSpring stiffness for body ' + self.body[body_num].name + ' scaled by read_kh method'
+            print('\tSpring stiffness for body ' + self.body[body_num].name + ' scaled by read_kh method')
 
     def read_hydrostatics(self, file, body_num):
         '''
@@ -293,7 +296,7 @@ class NemohOutput(object):
 #
 #     out = []
 #
-#     for i in xrange(len):
+#     for i in range(len):
 #         out.append(data[0,:,i])
 #
 #     out = np.array(out)
@@ -327,7 +330,7 @@ def _read_tec(file, data_type):
 
     # Sort the zones from the .tec file
     zones = proc.keys()
-    zones.sort()
+    zones=sorted(zones)
 
     # Set the frequencies and calculate number of freqs
     w = np.array(proc[zones[0]].field(0))
@@ -342,16 +345,16 @@ def _read_tec(file, data_type):
         b = []
 
     if data_type == 1:
-        for j in xrange(n_vars):
+        for j in range(n_vars):
             a[j,0,:] = proc[zones[-1]].field(1+j*2)
             b[j,0,:] = proc[zones[-1]].field(2+j*2)
 
     if data_type == 2:
         for i, zone in enumerate(zones):
-            for j in xrange(n_vars):
+            for j in range(n_vars):
                 a[i,j] = proc[zone].field(1+j*2)[0]
 
-    return (a, b, w, raw)
+    return(a, b, w, raw)
 
 def _read_radiation(file, ):
     '''
@@ -380,7 +383,7 @@ def _read_radiation(file, ):
 
     # Sort the zones from the .tec file
     zones = proc.keys()
-    zones.sort()
+    zones=sorted(zones)
 
     # Set the frequencies and calculate number of freqs
     w = np.array(proc[zones[0]].field(0))
@@ -392,11 +395,11 @@ def _read_radiation(file, ):
 
     # Populate matrices
     for i, zone in enumerate(zones):
-        for j in xrange(n_vars):
+        for j in range(n_vars):
             a[i,j,:] = proc[zone].field(1+j*2)
             b[i,j,:] = proc[zone].field(2+j*2)
 
-    return (a, b, w, raw)
+    return(a, b, w, raw)
 
 def _read_excitation(file, ):
     '''
@@ -434,7 +437,7 @@ def _read_excitation(file, ):
 
     # Sort the zones from the .tec file
     zones = proc.keys()
-    zones.sort()
+    zones=sorted(zones)
 
     # Set the frequencies and calculate number of freqs
     w = np.array(proc[zones[0]].field(0))
@@ -446,11 +449,11 @@ def _read_excitation(file, ):
 
     # Populate matrices
     for i, zone in enumerate(zones):
-        for j in xrange(n_vars):
+        for j in range(n_vars):
             a[j,i,:] = proc[zone].field(1+j*2)
             b[j,i,:] = proc[zone].field(2+j*2)
 
-    return (a, b, w, raw)
+    return(a, b, w, raw)
 
 def read(sim_dir='./', cal_file='Nemoh.cal', results_dir = 'Results', mesh_dir='Mesh', scale=False):
     '''
@@ -483,7 +486,7 @@ def read(sim_dir='./', cal_file='Nemoh.cal', results_dir = 'Results', mesh_dir='
     '''
     nemoh_data = NemohOutput(sim_dir, cal_file, results_dir, mesh_dir, scale)
 
-    return nemoh_data
+    return(nemoh_data)
 
 # def _reshape_tec(data):
 #

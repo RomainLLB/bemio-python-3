@@ -45,7 +45,7 @@ def write_hdf5(bemio_obj,out_file=None):
         out_file = bemio_obj.files['hdf5']
 
 
-    print 'Writing HDF5 data to ' + out_file
+    print('Writing HDF5 data to ' + out_file)
 
 
     with h5py.File(out_file, "w") as f:
@@ -92,9 +92,9 @@ def write_hdf5(bemio_obj,out_file=None):
                 irf_rad_l_correct_loc.attrs['description'] = 'Time derivative of the impulse response function'
 
 
-                for m in xrange(bemio_obj.body[key].am.all.shape[0]):
+                for m in range(bemio_obj.body[key].am.all.shape[0]):
 
-                    for n in xrange(bemio_obj.body[key].am.all.shape[1]):
+                    for n in range(bemio_obj.body[key].am.all.shape[1]):
 
                         irf_rad_l_comp_correct_loc = f.create_dataset('body' + str(key+1) + '/hydro_coeffs/radiation_damping/impulse_response_fun/components/L/' + str(m+1) + '_' + str(n+1),data=np.array([bemio_obj.body[key].rd.irf.t,bemio_obj.body[key].rd.irf.L[m,n,:]]).transpose())
                         irf_rad_l_comp_correct_loc.attrs['units'] = ''
@@ -105,7 +105,7 @@ def write_hdf5(bemio_obj,out_file=None):
                         irf_rad_k_comp_correct_loc.attrs['description'] = 'Components of the ddt(IRF): K'
             except:
 
-                print '\tRadiation IRF functions for ' + bemio_obj.body[key].name + ' were not written.'
+                print('\tRadiation IRF functions for ' + bemio_obj.body[key].name + ' were not written.')
 
             # Excitation IRF
             try:
@@ -117,9 +117,9 @@ def write_hdf5(bemio_obj,out_file=None):
                 irf_ex_t = f.create_dataset('body' + str(key+1) + '/hydro_coeffs/excitation/impulse_response_fun/w',data=bemio_obj.body[key].ex.irf.w)
                 irf_ex_w = f.create_dataset('body' + str(key+1) + '/hydro_coeffs/excitation/impulse_response_fun/t',data=bemio_obj.body[key].ex.irf.t)
 
-                for m in xrange(bemio_obj.body[key].ex.mag.shape[0]):
+                for m in range(bemio_obj.body[key].ex.mag.shape[0]):
 
-                    for n in xrange(bemio_obj.body[key].ex.mag.shape[1]):
+                    for n in range(bemio_obj.body[key].ex.mag.shape[1]):
 
                         irf_ex_f_comp = f.create_dataset('body' + str(key+1) + '/hydro_coeffs/excitation/impulse_response_fun/components/f/' + str(m+1) + '_' + str(n+1),data=np.array([bemio_obj.body[key].ex.irf.t,bemio_obj.body[key].ex.irf.f[m,n,:]]).transpose())
                         irf_ex_f_comp.attrs['units'] = ''
@@ -127,7 +127,7 @@ def write_hdf5(bemio_obj,out_file=None):
 
             except:
 
-                print '\tExcitation IRF functions for ' + bemio_obj.body[key].name + ' were not written.'
+                print('\tExcitation IRF functions for ' + bemio_obj.body[key].name + ' were not written.')
 
             try:
 
@@ -154,10 +154,14 @@ def write_hdf5(bemio_obj,out_file=None):
                 it = f.create_dataset('body' + str(key+1) + '/hydro_coeffs/radiation_damping/state_space/it',data=bemio_obj.body[key].rd.ss.it)
                 it.attrs['units'] = ''
                 it.attrs['description'] = 'Order of state space realization'
+                
+                K_ss_est = f.create_dataset('body' + str(key+1) + '/hydro_coeffs/radiation_damping/state_space/K_ss_est',data=bemio_obj.body[key].rd.ss.irk_bss)
+                K_ss_est.attrs['units'] = ''
+                K_ss_est.attrs['description'] = 'Approximation of K with the state space realization'
 
-                for m in xrange(bemio_obj.body[key].am.all.shape[0]):
+                for m in range(bemio_obj.body[key].am.all.shape[0]):
 
-                    for n in xrange(bemio_obj.body[key].am.all.shape[1]):
+                    for n in range(bemio_obj.body[key].am.all.shape[1]):
 
                         ss_A = f.create_dataset('body' + str(key+1) + '/hydro_coeffs/radiation_damping/state_space/A/components/' + str(m+1) + '_' + str(n+1),data=bemio_obj.body[key].rd.ss.A[m,n,:,:])
                         ss_A.attrs['units'] = ''
@@ -177,7 +181,7 @@ def write_hdf5(bemio_obj,out_file=None):
 
             except:
 
-                print '\tRadiation state space coefficients for ' + bemio_obj.body[key].name + ' were not written.'
+                print('\tRadiation state space coefficients for ' + bemio_obj.body[key].name + ' were not written.')
 
             k = f.create_dataset('body' + str(key+1) + '/hydro_coeffs/linear_restoring_stiffness',data=bemio_obj.body[key].k)
             k.attrs['units'] = ''
@@ -199,9 +203,9 @@ def write_hdf5(bemio_obj,out_file=None):
             exIm.attrs['units'] = ''
             exIm.attrs['description'] = 'Imaginary component of excitation force'
 
-            for m in xrange(bemio_obj.body[key].ex.mag.shape[0]):
+            for m in range(bemio_obj.body[key].ex.mag.shape[0]):
 
-                for n in xrange(bemio_obj.body[key].ex.mag.shape[1]):
+                for n in range(bemio_obj.body[key].ex.mag.shape[1]):
 
                     irf_ex_f_comp = f.create_dataset('body' + str(key+1) + '/hydro_coeffs/excitation//components/mag/' + str(m+1) + '_' + str(n+1),data=np.array([bemio_obj.body[key].T,bemio_obj.body[key].ex.mag[m,n,:]]).transpose())
                     irf_ex_f_comp = f.create_dataset('body' + str(key+1) + '/hydro_coeffs/excitation//components/phase/' + str(m+1) + '_' + str(n+1),data=np.array([bemio_obj.body[key].T,bemio_obj.body[key].ex.phase[m,n,:]]).transpose())
@@ -256,9 +260,9 @@ def write_hdf5(bemio_obj,out_file=None):
             am.attrs['units for rotational degrees of freedom'] = 'kg-m^2'
             am.attrs['description'] = 'Added mass. Frequency is the third dimension of the data structure.'
 
-            for m in xrange(bemio_obj.body[key].am.all.shape[0]):
+            for m in range(bemio_obj.body[key].am.all.shape[0]):
 
-                for n in xrange(bemio_obj.body[key].am.all.shape[1]):
+                for n in range(bemio_obj.body[key].am.all.shape[1]):
 
                     amComp = f.create_dataset('body' + str(key+1) + '/hydro_coeffs/added_mass/components/' + str(m+1) + '_' + str(n+1),data=np.array([bemio_obj.body[key].T, bemio_obj.body[key].am.all[m,n,:]]).transpose())
                     amComp.attrs['units'] = ''
@@ -273,6 +277,9 @@ def write_hdf5(bemio_obj,out_file=None):
             rad.attrs['description'] = 'Radiation damping. Frequency is the thrid dimension of the data structure.'
 
         # Simulation parameters
+        num_bodies = f.create_dataset('simulation_parameters/num_bodies',data=bemio_obj.body[0].num_bodies)
+        num_bodies.attrs['description'] = 'number of bodies'
+        
         g = f.create_dataset('simulation_parameters/g',data=bemio_obj.body[key].g)
         g.attrs['units'] = 'm/s^2'
         g.attrs['description'] = 'Gravitational acceleration'
@@ -301,8 +308,9 @@ def write_hdf5(bemio_obj,out_file=None):
         scaled.attrs['description'] = 'True: The data is scaled by rho*g, False: The data is not scaled by rho*g'
 
         bemio_version = f.create_dataset('bemio_information/version',data=base())
+        bemio_version.attrs['desription']='Version of Bemio'
 
-        rawOut = f.create_dataset('bem_data/output',data=bemio_obj.body[key].bem_raw_data)
+        rawOut = f.create_dataset('bem_data/output',data=np.string_(bemio_obj.body[key].bem_raw_data))
         rawOut.attrs['description'] = 'Raw output from BEM code'
 
         code = f.create_dataset('bem_data/code',data=bemio_obj.body[key].bem_code)
