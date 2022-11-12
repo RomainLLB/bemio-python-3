@@ -1,1 +1,1 @@
-from __version__ import base, full
+from bemio.__version__ import base, full
