@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from __future__ import division
+#from __future__ import division
 
 import numpy as np
 
@@ -21,7 +21,7 @@ from scipy import interpolate
 
 from scipy.linalg import hankel, expm
 
-from progressbar import ProgressBar, Bar, Percentage
+from tqdm import tqdm
 
 
 class Raw(object):
@@ -197,7 +197,7 @@ class HydrodynamicData(object):
             '\n    Center of gravity (m): ' + str(self.cg) + \
             '\n    Center of buoyancy (m): ' + str(self.cb)
 
-        return out_string
+        return(out_string)
 
     def calc_irf_excitation(self, t_end=100.0, n_t=1001, n_w=1001, w_min=None, w_max=None):
         '''Function to calculate the excitation impulse response function. For
@@ -261,21 +261,20 @@ class HydrodynamicData(object):
         ex_re_interp = _interpolate_for_irf(self.w, self.ex.irf.w, self.ex.re)
         ex_im_interp = _interpolate_for_irf(self.w, self.ex.irf.w, self.ex.im)
 
-        pbar_maxval = self.ex.irf.t.size * self.ex.mag.shape[0] * self.ex.mag.shape[1]
-        pbar = ProgressBar(widgets=['Excitation force IRF for ' + self.name + ':', Percentage(), Bar()], maxval=pbar_maxval).start()
-        count = 1
-        for t_ind, t in enumerate(self.ex.irf.t):
-
-          for i in xrange(self.ex.mag.shape[0]):
-
-            for j in xrange(self.ex.mag.shape[1]):
-              tmp = ex_re_interp[i, j, :] * np.cos(self.ex.irf.w * t) - ex_im_interp[i, j, :] * np.sin(self.ex.irf.w * t)
-              tmp *= 1. / np.pi
-              self.ex.irf.f[i, j, t_ind] = np.trapz(y=tmp, x=self.ex.irf.w)
-              pbar.update(count)
-              count += 1
-
-        pbar.finish()
+        pbar_maxval = self.ex.irf.t.size * self.ex.mag.shape[0] * self.ex.mag.shape[1]        
+        with tqdm(total=pbar_maxval) as pbar:
+            pbar.set_description('Excitation force IRF for ' + self.name + ':')
+            
+            for t_ind, t in enumerate(self.ex.irf.t):
+    
+              for i in range(self.ex.mag.shape[0]):
+    
+                for j in range(self.ex.mag.shape[1]):
+                  tmp = ex_re_interp[i, j, :] * np.cos(self.ex.irf.w * t) - ex_im_interp[i, j, :] * np.sin(self.ex.irf.w * t)
+                  tmp *= 1. / np.pi
+                  self.ex.irf.f[i, j, t_ind] = np.trapz(y=tmp, x=self.ex.irf.w)
+                  
+                  pbar.update(1)
 
 
     def calc_irf_radiation(self, t_end=100., n_t=1001, n_w=1001, w_min=None, w_max=None):
@@ -349,34 +348,33 @@ class HydrodynamicData(object):
 
         # Calculate the IRF
         pbar_max_val = self.rd.irf.t.size * self.rd.all.shape[0] * self.rd.all.shape[1]
-        pbar = ProgressBar(widgets=['Radiation damping IRF for ' + self.name + ':', Percentage(), Bar()], maxval=pbar_max_val).start()
-        count = 1
-        for t_ind, t in enumerate(self.rd.irf.t):
+        with tqdm(total=pbar_max_val) as pbar:
+            pbar.set_description('Radiation damping IRF for ' + self.name + ':')
+            
+            for t_ind, t in enumerate(self.rd.irf.t):
+    
+                for i in range(self.rd.all.shape[0]):
+    
+                    for j in range(self.rd.all.shape[1]):
+                  # Radiation damping calculation method
+                        tmpL = 2. / np.pi * rd_interp[i, j, :] * np.sin(self.rd.irf.w * t)
+                        tmpK = 2. / np.pi * rd_interp[i, j, :] * np.cos(self.rd.irf.w * t)
+    
+                        # Different IRF calculation methods are needed for dimensional and
+                        # nondimensional hydro coefficients
+                        if self.scaled is False:
+    
+                            tmpK *= self.rd.irf.w
+    
+                        elif self.scaled is True:
+    
+                            tmpL /= self.rd.irf.w
+    
+                        self.rd.irf.K[i, j, t_ind] = np.trapz(y=tmpK, x=self.rd.irf.w)
+                        self.rd.irf.L[i, j, t_ind] = np.trapz(y=tmpL, x=self.rd.irf.w)
 
-            for i in xrange(self.rd.all.shape[0]):
+                        pbar.update(1)
 
-                for j in xrange(self.rd.all.shape[1]):
-              # Radiation damping calculation method
-                    tmpL = 2. / np.pi * rd_interp[i, j, :] * np.sin(self.rd.irf.w * t)
-                    tmpK = 2. / np.pi * rd_interp[i, j, :] * np.cos(self.rd.irf.w * t)
-
-                    # Different IRF calculation methods are needed for dimensional and
-                    # nondimensional hydro coefficients
-                    if self.scaled is False:
-
-                        tmpK *= self.rd.irf.w
-
-                    elif self.scaled is True:
-
-                        tmpL /= self.rd.irf.w
-
-                    self.rd.irf.K[i, j, t_ind] = np.trapz(y=tmpK, x=self.rd.irf.w)
-                    self.rd.irf.L[i, j, t_ind] = np.trapz(y=tmpL, x=self.rd.irf.w)
-
-                    pbar.update(count)
-                    count += 1
-
-        pbar.finish()
 
     def calc_ss_radiation(self, max_order=10, r2_thresh=0.95):
         '''Function to calculate the state space reailization of the wave
@@ -424,93 +422,95 @@ class HydrodynamicData(object):
         self.rd.ss.it = np.zeros([6, self.am.inf.shape[1]])
         self.rd.ss.r2t = np.zeros([6, self.am.inf.shape[1]])
 
-        pbar = ProgressBar(widgets=['Radiation damping state space realization for ' + self.name + ':', Percentage(), Bar()], maxval=self.am.inf.shape[0] * self.am.inf.shape[1]).start()
-        count = 0
-        for i in xrange(self.am.inf.shape[0]):
+        
+        maxval=self.am.inf.shape[0] * self.am.inf.shape[1]
+        with tqdm(total=maxval) as pbar:
+            pbar.set_description('Radiation damping state space realization for ' + self.name + ':')
+            
+            for i in range(self.am.inf.shape[0]):
+    
+              for j in range(self.am.inf.shape[1]):
+    
+                r2bt = np.linalg.norm(
+                    self.rd.irf.K[i, j, :] - self.rd.irf.K.mean(axis=2)[i, j])
+    
+                ss = 2  # Initial state space order
+    
+                if r2bt != 0.0:
+                  while True:
+    
+                    # Perform Hankel Singular Value Decomposition
+                    y = dt * self.rd.irf.K[i, j, :]
+                    h = hankel(y[1::])
+                    u, svh, v = np.linalg.svd(h)
+    
+                    u1 = u[0:self.rd.irf.t.size - 2, 0:ss]
+                    v1 = v.T[0:self.rd.irf.t.size - 2, 0:ss]
+                    u2 = u[1:self.rd.irf.t.size - 1, 0:ss]
+                    sqs = np.sqrt(svh[0:ss].reshape(ss, 1))
+                    invss = 1 / sqs
+                    ubar = np.dot(u1.T, u2)
+    
+                    a = ubar * np.dot(invss, sqs.T)
+                    b = v1[0, :].reshape(ss, 1) * sqs
+                    c = u1[0, :].reshape(1, ss) * sqs.T
+                    d = y[0]
+    
+                    CoeA = dt / 2
+                    CoeB = 1
+                    CoeC = -CoeA
+                    CoeD = 1
+    
+                    # (T/2*I + T/2*A)^{-1}         = 2/T(I + A)^{-1}
+                    iidd = np.linalg.inv(CoeA * np.eye(ss) - CoeC * a)
+    
+                    # (A-I)2/T(I + A)^{-1}         = 2/T(A-I)(I + A)^{-1}
+                    ac = np.dot(CoeB * a - CoeD * np.eye(ss), iidd)
+                    # (T/2+T/2)*2/T(I + A)^{-1}B   = 2(I + A)^{-1}B
+                    bc = (CoeA * CoeB - CoeC * CoeD) * np.dot(iidd, b)
+                    # C * 2/T(I + A)^{-1}          = 2/T(I + A)^{-1}
+                    cc = np.dot(c, iidd)
+                    # D - T/2C (2/T(I + A)^{-1})B  = D - C(I + A)^{-1})B
+                    dc = d + CoeC * np.dot(np.dot(c, iidd), b)
+    
+                    for jj in range(self.rd.irf.t.size):
+    
+                      # Calculate impulse response function from state space
+                      # approximation
+                      k_ss_est[jj] = np.dot(np.dot(cc, expm(ac * dt * jj)), bc)
+    
+                    # Calculate 2 norm of the difference between know and estimated
+                    # values impulse response function
+                    R2TT = np.linalg.norm(self.rd.irf.K[i, j, :] - k_ss_est)
+                    # Calculate the R2 value for impulse response function
+                    R2T = 1 - np.square(R2TT / r2bt)
+    
+                    # Check to see if threshold for the impulse response is meet
+                    if R2T >= r2_thresh:
+    
+                      status = 1  # %Set status
+                      break
+    
+                    # Check to see if limit on the state space order has been reached
+                    if ss == max_order:
+    
+                      status = 2  # %Set status
+                      break
+    
+                    ss = ss + 1  # Increase state space order
+    
+                  self.rd.ss.A[i, j, 0:ac.shape[0], 0:ac.shape[0]] = ac
+                  self.rd.ss.B[i, j, 0:bc.shape[0], 0] = bc[:, 0]
+                  self.rd.ss.C[i, j, 0, 0:cc.shape[1]] = cc[0, :]
+                  self.rd.ss.D[i, j] = dc
+                  self.rd.ss.irk_bss[i, j, :] = k_ss_est
+                  self.rd.ss.rad_conv[i, j] = status
+                  self.rd.ss.r2t[i, j] = R2T
+                  self.rd.ss.it[i, j] = ss
+    
 
-          for j in xrange(self.am.inf.shape[1]):
-
-            r2bt = np.linalg.norm(
-                self.rd.irf.K[i, j, :] - self.rd.irf.K.mean(axis=2)[i, j])
-
-            ss = 2  # Initial state space order
-
-            if r2bt != 0.0:
-              while True:
-
-                # Perform Hankel Singular Value Decomposition
-                y = dt * self.rd.irf.K[i, j, :]
-                h = hankel(y[1::])
-                u, svh, v = np.linalg.svd(h)
-
-                u1 = u[0:self.rd.irf.t.size - 2, 0:ss]
-                v1 = v.T[0:self.rd.irf.t.size - 2, 0:ss]
-                u2 = u[1:self.rd.irf.t.size - 1, 0:ss]
-                sqs = np.sqrt(svh[0:ss].reshape(ss, 1))
-                invss = 1 / sqs
-                ubar = np.dot(u1.T, u2)
-
-                a = ubar * np.dot(invss, sqs.T)
-                b = v1[0, :].reshape(ss, 1) * sqs
-                c = u1[0, :].reshape(1, ss) * sqs.T
-                d = y[0]
-
-                CoeA = dt / 2
-                CoeB = 1
-                CoeC = -CoeA
-                CoeD = 1
-
-                # (T/2*I + T/2*A)^{-1}         = 2/T(I + A)^{-1}
-                iidd = np.linalg.inv(CoeA * np.eye(ss) - CoeC * a)
-
-                # (A-I)2/T(I + A)^{-1}         = 2/T(A-I)(I + A)^{-1}
-                ac = np.dot(CoeB * a - CoeD * np.eye(ss), iidd)
-                # (T/2+T/2)*2/T(I + A)^{-1}B   = 2(I + A)^{-1}B
-                bc = (CoeA * CoeB - CoeC * CoeD) * np.dot(iidd, b)
-                # C * 2/T(I + A)^{-1}          = 2/T(I + A)^{-1}
-                cc = np.dot(c, iidd)
-                # D - T/2C (2/T(I + A)^{-1})B  = D - C(I + A)^{-1})B
-                dc = d + CoeC * np.dot(np.dot(c, iidd), b)
-
-                for jj in xrange(self.rd.irf.t.size):
-
-                  # Calculate impulse response function from state space
-                  # approximation
-                  k_ss_est[jj] = np.dot(np.dot(cc, expm(ac * dt * jj)), bc)
-
-                # Calculate 2 norm of the difference between know and estimated
-                # values impulse response function
-                R2TT = np.linalg.norm(self.rd.irf.K[i, j, :] - k_ss_est)
-                # Calculate the R2 value for impulse response function
-                R2T = 1 - np.square(R2TT / r2bt)
-
-                # Check to see if threshold for the impulse response is meet
-                if R2T >= r2_thresh:
-
-                  status = 1  # %Set status
-                  break
-
-                # Check to see if limit on the state space order has been reached
-                if ss == max_order:
-
-                  status = 2  # %Set status
-                  break
-
-                ss = ss + 1  # Increase state space order
-
-              self.rd.ss.A[i, j, 0:ac.shape[0], 0:ac.shape[0]] = ac
-              self.rd.ss.B[i, j, 0:bc.shape[0], 0] = bc[:, 0]
-              self.rd.ss.C[i, j, 0, 0:cc.shape[1]] = cc[0, :]
-              self.rd.ss.D[i, j] = dc
-              self.rd.ss.irk_bss[i, j, :] = k_ss_est
-              self.rd.ss.rad_conv[i, j] = status
-              self.rd.ss.r2t[i, j] = R2T
-              self.rd.ss.it[i, j] = ss
-
-            count += 1
-            pbar.update(count)
-
-        pbar.finish()
+                pbar.update(1)
+    
 
     def scale(self, scale=None):
         '''Function to scale the hydrodynamic coefficient.
@@ -549,11 +549,11 @@ class HydrodynamicData(object):
             self.scale = scale
 
         if self.scale is True and self.scaled is False:
-          print '\tScaling hydro coefficients for body ' + self.name + ' by rho, g, and w...'
+          print('\tScaling hydro coefficients for body ' + self.name + ' by rho, g, and w...')
           try:
               self.k *= self.rho * self.g
           except:
-              print '\t\tSpring stiffness not scaled'
+              print('\t\tSpring stiffness not scaled')
 
           self.am.all *= self.rho
           self.am.inf *= self.rho
@@ -575,18 +575,18 @@ class HydrodynamicData(object):
               self.ex.fk.im *= self.rho * self.g
 
 
-          for j in xrange(self.rd.all.shape[2]):
+          for j in range(self.rd.all.shape[2]):
 
             self.rd.all[:, :, j] = self.rd.all[:, :, j] * self.rho * self.w[j]
 
           self.scaled = True
 
         elif self.scale is False and self.scaled is True:
-          print '\tUn-scaling hydro coefficients for body ' + self.name + ' by rho, g, and w...'
+          print('\tUn-scaling hydro coefficients for body ' + self.name + ' by rho, g, and w...')
           try:
               self.k /= (self.rho * self.g)
           except:
-              print '\t\tSpring stiffness not un-scaled'
+              print('\t\tSpring stiffness not un-scaled')
           self.am.all /= self.rho
           self.am.inf /= self.rho
           if hasattr(self.am,'zero') is True:
@@ -606,7 +606,7 @@ class HydrodynamicData(object):
               self.ex.fk.re /= (self.rho * self.g)
               self.ex.fk.im /= (self.rho * self.g)
 
-          for j in xrange(self.rd.all.shape[2]):
+          for j in range(self.rd.all.shape[2]):
 
             self.rd.all[:, :, j] = self.rd.all[:, :, j] / (self.rho * self.w[j])
 
@@ -630,9 +630,9 @@ def _interpolate_for_irf(w_orig, w_interp, mat_in):
 
     w_tmp = w_orig
 
-  for i in xrange(mat_in.shape[0]):
+  for i in range(mat_in.shape[0]):
 
-    for j in xrange(mat_in.shape[1]):
+    for j in range(mat_in.shape[1]):
 
       if flip is True:
 

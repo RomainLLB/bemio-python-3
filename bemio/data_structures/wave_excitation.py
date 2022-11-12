@@ -133,4 +133,4 @@ def convolution(irf, irf_t, eta, eta_t, dt=None):
         >>> plt.plot(ex.excitation_force.t,ex.excitation_force.f)
     '''
     excitation_force = WaveExcitationConvolution(irf, irf_t, eta, eta_t)
-    return excitation_force
+    return(excitation_force)
